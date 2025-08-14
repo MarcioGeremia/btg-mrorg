@@ -1,0 +1,54 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "FGA5ZeTOLHnIp4ZjxIj0PsShW/DpLgdYAlHsbli7KMMa8Z0O",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "queues": [
+    {
+      "name": "lista_pedidos",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "lista_pedidos_exchange",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "lista_pedidos_exchange",
+      "vhost": "/",
+      "destination": "lista_pedidos",
+      "destination_type": "queue",
+      "routing_key": "lista_pedidos_routing_key",
+      "arguments": {}
+    }
+  ]
+}
