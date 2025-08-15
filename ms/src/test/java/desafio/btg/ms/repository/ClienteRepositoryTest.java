@@ -1,0 +1,78 @@
+package desafio.btg.ms.repository;
+
+import desafio.btg.ms.domain.Cliente;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+public class ClienteRepositoryTest {
+
+    private JdbcTemplate jdbcTemplate;
+    private ClienteRepository repository;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate = mock(JdbcTemplate.class);
+        repository = new ClienteRepository(jdbcTemplate);
+    }
+
+    @Test
+    void deveSalvarCliente() {
+        // Arrange
+        Cliente cliente = Cliente.builder().codigoCliente(123).build();
+
+        // Act
+        repository.save(cliente);
+
+        // Assert
+        verify(jdbcTemplate).update("INSERT INTO clientes (codigoCliente) VALUES (?)", 123);
+    }
+
+    @Test
+    void deveBuscarClientePorCodigo() throws SQLException {
+        // Arrange
+        ArgumentCaptor<RowMapper<Cliente>> captor =  ArgumentCaptor.forClass(RowMapper.class);
+        when(jdbcTemplate.query(anyString(), captor.capture(), eq(42)))
+                .thenReturn(List.of(Cliente.builder().codigoCliente(42).build()));
+
+        // Act
+        repository.findByCodigoCliente(42);
+
+        // Assert: capturando o RowMapper
+        verify(jdbcTemplate).query(anyString(), captor.capture(), eq(42));
+        RowMapper<Cliente> mapper = captor.getValue();
+
+        // Simulando ResultSet
+        ResultSet rs = mock(ResultSet.class);
+        when(rs.getInt("codigoCliente")).thenReturn(42);
+
+        Cliente clienteMapeado = mapper.mapRow(rs, 0);
+
+        assertThat(clienteMapeado).isNotNull();
+        assertThat(clienteMapeado.getCodigoCliente()).isEqualTo(42);
+
+    }
+
+    @Test
+    void deveRetornarNullQuandoClienteNaoExiste() {
+        // Arrange
+        ArgumentCaptor<RowMapper<Cliente>> captor = ArgumentCaptor.forClass(RowMapper.class);
+        when(jdbcTemplate.query(anyString(), captor.capture(), eq(999))).thenReturn(List.of());
+
+        // Act
+        Cliente resultado = repository.findByCodigoCliente(999);
+
+        // Assert
+        assertThat(resultado).isNull();
+    }
+
+}

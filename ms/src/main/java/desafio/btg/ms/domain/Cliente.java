@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @Builder
 public class Cliente {
-    private int codigoCliente;
+    private Integer codigoCliente;
 }
