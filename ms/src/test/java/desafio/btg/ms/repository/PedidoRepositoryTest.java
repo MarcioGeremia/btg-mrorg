@@ -3,14 +3,19 @@ package desafio.btg.ms.repository;
 import desafio.btg.ms.domain.Pedido;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.RowMapper;
 
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PedidoRepositoryTest {
@@ -25,40 +30,31 @@ class PedidoRepositoryTest {
     }
 
     @Test
-    void deveCriarKeyHolder() {
-        KeyHolder keyHolder = repository.criarKeyHolder();
-        assertNotNull(keyHolder);
+    void deveBuscarPorCodigoPedido() throws SQLException {
+        ArgumentCaptor<RowMapper<Pedido>> captor =  ArgumentCaptor.forClass(RowMapper.class);
+        when(jdbcTemplate.query(anyString(), captor.capture(), eq(42)))
+                .thenReturn(List.of(Pedido.builder().codigoPedido(42).build()));
+
+        repository.findByCodigoPedido(42);
+
+        verify(jdbcTemplate).query(anyString(), captor.capture(), eq(42));
+
+        RowMapper<Pedido> mapper = captor.getValue();
+        ResultSet rs = mock(ResultSet.class);
+        when(rs.getInt("codigoPedido")).thenReturn(42);
+        Pedido pedido = mapper.mapRow(rs, 0);
+
+        assertThat(pedido).isNotNull();
+        assertThat(pedido.getCodigoPedido()).isEqualTo(42);
     }
 
     @Test
     void deveSalvarPedido() {
-        Pedido pedido = Pedido.builder()
-                .codigoCliente(123)
-                .build();
+        Pedido cliente = Pedido.builder().codigoPedido(123).codigoCliente(123).build();
 
-        when(jdbcTemplate.update(any(), any(KeyHolder.class))).thenAnswer(invocation -> {
-            KeyHolder kh = invocation.getArgument(1);
-            kh.getKeyList().add(Map.of("codigoPedido", 456));
-            return 1;
-        });
+        repository.save(cliente);
 
-        Pedido resultado = repository.save(pedido);
-
-        assertEquals(456, resultado.getCodigoPedido());
-        assertEquals(123, resultado.getCodigoCliente());
-    }
-
-    @Test
-    void deveNaoPossuirIdGerado() {
-        Pedido pedido = Pedido.builder()
-                .codigoCliente(789)
-                .build();
-
-        when(jdbcTemplate.update(any(), any(KeyHolder.class))).thenReturn(1);
-
-        Pedido resultado = repository.save(pedido);
-
-        assertNull(resultado.getCodigoPedido());
-        assertEquals(789, resultado.getCodigoCliente());
+        verify(jdbcTemplate).update("INSERT INTO pedidos (codigoPedido, codigoCliente) VALUES (?, ?)",
+                123, 123);
     }
 }

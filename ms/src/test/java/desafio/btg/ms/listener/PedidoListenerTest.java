@@ -20,13 +20,10 @@ public class PedidoListenerTest {
 
     @Test
     void deveExecutarComSucesso() {
-        // Arrange
         Pedido pedido = Pedido.builder().codigoPedido(123).build();
 
-        // Act
         listener.receive(pedido);
 
-        // Assert
         verify(service, times(1)).salvarPedido(pedido);
     }
 

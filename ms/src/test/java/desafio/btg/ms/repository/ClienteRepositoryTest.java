@@ -27,51 +27,39 @@ public class ClienteRepositoryTest {
 
     @Test
     void deveSalvarCliente() {
-        // Arrange
         Cliente cliente = Cliente.builder().codigoCliente(123).build();
 
-        // Act
         repository.save(cliente);
 
-        // Assert
         verify(jdbcTemplate).update("INSERT INTO clientes (codigoCliente) VALUES (?)", 123);
     }
 
     @Test
     void deveBuscarClientePorCodigo() throws SQLException {
-        // Arrange
         ArgumentCaptor<RowMapper<Cliente>> captor =  ArgumentCaptor.forClass(RowMapper.class);
         when(jdbcTemplate.query(anyString(), captor.capture(), eq(42)))
                 .thenReturn(List.of(Cliente.builder().codigoCliente(42).build()));
 
-        // Act
         repository.findByCodigoCliente(42);
 
-        // Assert: capturando o RowMapper
         verify(jdbcTemplate).query(anyString(), captor.capture(), eq(42));
-        RowMapper<Cliente> mapper = captor.getValue();
 
-        // Simulando ResultSet
+        RowMapper<Cliente> mapper = captor.getValue();
         ResultSet rs = mock(ResultSet.class);
         when(rs.getInt("codigoCliente")).thenReturn(42);
-
         Cliente clienteMapeado = mapper.mapRow(rs, 0);
 
         assertThat(clienteMapeado).isNotNull();
         assertThat(clienteMapeado.getCodigoCliente()).isEqualTo(42);
-
     }
 
     @Test
     void deveRetornarNullQuandoClienteNaoExiste() {
-        // Arrange
         ArgumentCaptor<RowMapper<Cliente>> captor = ArgumentCaptor.forClass(RowMapper.class);
         when(jdbcTemplate.query(anyString(), captor.capture(), eq(999))).thenReturn(List.of());
 
-        // Act
         Cliente resultado = repository.findByCodigoCliente(999);
 
-        // Assert
         assertThat(resultado).isNull();
     }
 

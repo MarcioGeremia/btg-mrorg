@@ -14,7 +14,8 @@ public class ItemRepository {
     }
 
     public void save(Item item) {
-        String sql = "INSERT INTO itensPedido (codigoPedido, produto, quantidade, preco) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO itensPedido (codigoPedido, produto, quantidade, preco) " +
+                     "VALUES (?, ?, ?, ?)";
         jdbcTemplate.update(sql,
                 item.getCodigoPedido(),
                 item.getProduto(),

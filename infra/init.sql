@@ -1,9 +1,9 @@
 USE `btgdb`;
 
-CREATE TABLE IF NOT EXISTS clientes (codigoCliente INT AUTO_INCREMENT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS clientes (codigoCliente INT PRIMARY KEY);
 
 CREATE TABLE IF NOT EXISTS pedidos (
-  codigoPedido INT AUTO_INCREMENT PRIMARY KEY,
+  codigoPedido INT PRIMARY KEY,
   codigoCliente INT NOT NULL,
   FOREIGN KEY (codigoCliente) REFERENCES clientes(codigoCliente),
   INDEX idx_codigo_pedido (codigoPedido)

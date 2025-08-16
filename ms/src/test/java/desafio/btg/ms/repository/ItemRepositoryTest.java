@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.math.BigDecimal;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -21,24 +23,22 @@ public class ItemRepositoryTest {
 
     @Test
     void deveSalvarItem() {
-        // Arrange
         Item item = Item.builder()
                 .codigoPedido(101)
                 .produto("Caneta Azul")
                 .quantidade(3)
-                .preco(2.50)
+                .preco(new BigDecimal("2.50"))
                 .build();
 
-        // Act
         repository.save(item);
 
-        // Assert
         verify(jdbcTemplate).update(
-                "INSERT INTO itensPedido (codigoPedido, produto, quantidade, preco) VALUES (?, ?, ?, ?)",
+                "INSERT INTO itensPedido (codigoPedido, produto, quantidade, preco) " +
+                        "VALUES (?, ?, ?, ?)",
                 101,
                 "Caneta Azul",
                 3,
-                2.50
+                new BigDecimal("2.50")
         );
     }
 }

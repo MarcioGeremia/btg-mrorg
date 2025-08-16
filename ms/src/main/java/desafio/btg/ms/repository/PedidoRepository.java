@@ -2,12 +2,8 @@ package desafio.btg.ms.repository;
 
 import desafio.btg.ms.domain.Pedido;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 
 @Repository
 public class PedidoRepository {
@@ -18,26 +14,20 @@ public class PedidoRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    protected KeyHolder criarKeyHolder() {
-        return new GeneratedKeyHolder();
+    public Pedido findByCodigoPedido(Integer codigoPedido) {
+        String sql = "SELECT codigoPedido FROM pedidos WHERE codigoPedido = ?";
+        RowMapper<Pedido> mapper = (rs, rowNum) -> Pedido.builder()
+                .codigoPedido(rs.getInt("codigoPedido"))
+                .build();
+        return jdbcTemplate.query(sql, mapper, codigoPedido)
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 
-    public Pedido save(Pedido pedido) {
-        String sql = "INSERT INTO pedidos (codigoCliente) VALUES (?)";
-        KeyHolder keyHolder = criarKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, pedido.getCodigoCliente());
-            return ps;
-        }, keyHolder);
-
-        Number generatedId = keyHolder.getKey();
-        if (generatedId != null) {
-            pedido.setCodigoPedido(generatedId.intValue());
-        }
-
-        return pedido;
+    public void save(Pedido pedido) {
+        String sql = "INSERT INTO pedidos (codigoPedido, codigoCliente) VALUES (?, ?)";
+        jdbcTemplate.update(sql, pedido.getCodigoPedido(), pedido.getCodigoCliente());
     }
 
 }

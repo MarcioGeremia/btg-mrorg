@@ -29,11 +29,14 @@ public class PedidoService {
         Cliente cliente = clienteRepository.findByCodigoCliente(pedido.getCodigoCliente());
         if(isNull(cliente))
             clienteRepository.save(Cliente.builder().codigoCliente(pedido.getCodigoCliente()).build());
-        Pedido pedidoSalvo = pedidoRepository.save(pedido);
-        if (pedido.getItens() != null) {
-            for (Item item : pedido.getItens()) {
-                item.setCodigoPedido(pedidoSalvo.getCodigoPedido());
-                itemRepository.save(item);
+        Pedido pedidoBase = pedidoRepository.findByCodigoPedido(pedido.getCodigoPedido());
+        if(isNull(pedidoBase)) {
+            pedidoRepository.save(pedido);
+            if (pedido.getItens() != null) {
+                for (Item item : pedido.getItens()) {
+                    item.setCodigoPedido(pedido.getCodigoPedido());
+                    itemRepository.save(item);
+                }
             }
         }
     }

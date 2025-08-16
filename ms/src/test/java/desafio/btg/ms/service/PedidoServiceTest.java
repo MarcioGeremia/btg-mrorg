@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PedidoServiceTest {
 
@@ -36,10 +40,8 @@ class PedidoServiceTest {
                 .build();
 
         Cliente cliente = Cliente.builder().codigoCliente(1).build();
-        Pedido pedidoSalvo = Pedido.builder().codigoPedido(99).codigoCliente(1).build();
 
         when(clienteRepository.findByCodigoCliente(1)).thenReturn(cliente);
-        when(pedidoRepository.save(pedido)).thenReturn(pedidoSalvo);
 
         service.salvarPedido(pedido);
 
@@ -55,7 +57,6 @@ class PedidoServiceTest {
                 .build();
 
         when(clienteRepository.findByCodigoCliente(2)).thenReturn(null);
-        when(pedidoRepository.save(pedido)).thenReturn(Pedido.builder().codigoPedido(88).codigoCliente(2).build());
 
         service.salvarPedido(pedido);
 
