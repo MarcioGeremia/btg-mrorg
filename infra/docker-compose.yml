@@ -1,6 +1,7 @@
 services:
   mysql:
     image: mariadb:10.6
+    hostname: mysql
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: root_password
@@ -12,10 +13,18 @@ services:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "admin", "-padmin", "-D", "btgdb", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - btg-network
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq-container
+    hostname: rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672"
@@ -24,7 +33,44 @@ services:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"'
     volumes:
       - ./definitions.json:/etc/rabbitmq/definitions.json
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - btg-network
+
+  ms:
+    build:
+      context: ../ms
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - btg-network
+
+  api:
+    build:
+      context: ../api
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - btg-network
 
 volumes:
   mysql_data:
   rabbitmq_data:
+
+networks:
+  btg-network:
+    driver: bridge
